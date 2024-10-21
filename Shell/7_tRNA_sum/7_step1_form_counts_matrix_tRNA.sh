@@ -1,19 +1,21 @@
 #!/bin/bash
-#SBATCH -c 4
-#SBATCH --mem-per-cpu=32G
+#Specify the mapping result file; the text here is for illustration purpose only.
+summary_files=("Condition1_Sample1.txt" "Condition1_Sample2.txt" "Condition1_Sample3.txt" "Condition2_Sample4.txt" "Condition2_Sample5.txt" "Condition2_Sample6.txt")
 
-summary_files=("C7_RT1.txt" "C7_RT2.txt" "C7_RT3.txt" "C7_RT4.txt" "C7_RT5.txt" "C7_TN1.txt" "C7_TN2.txt" "C7_TN3.txt" "C7_TN4.txt" "C7_TN5.txt" "C7_CE1.txt" "C7_CE2.txt" "C7_CE3.txt" "C7_CE4.txt" "C7_CE5.txt" "C7_CE6.txt" "C7_CE7.txt" "C7_CE8.txt" "C7_CE9.txt" "C7_CE10.txt")
+#Set the sample name, which will be your column name in the read counts matrix file.
+sample_names=("Condition1_Sample1" "Condition1_Sample2" "Condition1_Sample3" "Condition2_Sample4" "Condition2_Sample5" "Condition2_Sample6")
 
-sample_names=("C7_RT1" "C7_RT2" "C7_RT3" "C7_RT4" "C7_RT5" "C7_TN1" "C7_TN2" "C7_TN3" "C7_TN4" "C7_TN5" "C7_CE1" "C7_CE2" "C7_CE3" "C7_CE4" "C7_CE5" "C7_CE6" "C7_CE7" "C7_CE8" "C7_CE9" "C7_CE10")
-
+#Specify the field names(patterns) that belong to tRNA and tsRNA.
 patterns=("GtRNAdb-pre-tRNA_Match_Genome" "GtRNAdb-pre-tRNA_5_end_Match_Genome" "GtRNAdb-mature-tRNA_Match_Genome" "GtRNAdb-mature-tRNA_5_end_Match_Genome" "GtRNAdb-mature-tRNA_3_end_Match_Genome" "GtRNAdb-mature-tRNA_CCA_end_Match_Genome" "mitotRNAdb-mature-mt_tRNA_Match_Genome" "mitotRNAdb-mature-mt_tRNA_5_end_Match_Genome" "mitotRNAdb-mature-mt_tRNA_3_end_Match_Genome" "mitotRNAdb-mature-mt_tRNA_CCA_end_Match_Genome")
 
+#Create a matrix file, write the header and column names, and use tab separation.
 echo -e "tRNA\t${sample_names[@]}" | tr ' ' '\t' > tRNA_read_counts.txt
 
-# Create an empty file to store all matched tRNA entries
+#Create an empty file to store all matched tRNA and tsRNA entries
 > all_tRNA.txt
 
-# Extract all tRNA entries that match the patterns
+#Extract all tRNA and tsRNA entries that match the patterns;
+#Generate the "matched_tRNA_list.txt" file, which contains all the mapped tRNA and tsRNA species in all samples.
 for file in "${summary_files[@]}"; do
     for pattern in "${patterns[@]}"; do
         awk -v pattern="$pattern" '$1 == pattern && $2 != "-" {print $2}' "$file" >> all_tRNA.txt
@@ -23,7 +25,7 @@ done
 sort all_tRNA.txt | uniq > matched_tRNA_list.txt
 rm all_tRNA.txt
 
-# Create the read count table for all matched tRNAs
+#Extract the counts for each tRNA and tsRNA in its corresponding sample and write them into the previously created read counts matrix file, with values separated by tabs.
 while read -r gene; do
     line="$gene"
     for file in "${summary_files[@]}"; do
