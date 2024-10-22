@@ -1,0 +1,7 @@
+Condition1	Sample1
+Condition1	Sample2
+Condition1	Sample3
+Condition2	Sample4
+Condition2	Sample5
+Condition2	Sample6
+
